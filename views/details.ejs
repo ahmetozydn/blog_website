@@ -1,35 +1,89 @@
 <html lang="en">
-<%- include("./partials/head.ejs") %>
+  <%- include("./partials/head.ejs") %>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+  />
 
-<body>
-  <%- include("./partials/nav.ejs") %>
+  <body>
+    <%- include("./partials/nav.ejs") %>
 
-  <div class="details content">
-    <h2><%= blog.title %></h2>
-    <div class="content">
-      <p><%= blog.body %></p>
+    <div class="details content">
+      <h2 class="title"><%= blog.title %></h2>
+      <hr />
+      <div class="content">
+        <p><%= blog.body %></p>
+        <p style="display: none" class="snippet"><%= blog.snippet%></p>
+      </div>
+
+      <a class="update" style="margin-right: 32px" data-doc="<%= blog._id %>">
+        <i class="fa fa-solid fa-pencil"></i>
+      </a>
+      <a class="delete" data-doc="<%= blog._id %>">
+        <i class="fa fa-trash" style="color: #000000"></i>
+      </a>
     </div>
-    <a class="delete" data-doc="<%= blog._id %>">
-      <img src="/trashcan.svg" alt="delete icon">
-    </a>
-  </div>
 
-  <%- include("./partials/footer.ejs") %>
+    <%- include("./partials/footer.ejs") %>
 
-  <script>
-    const trashcan = document.querySelector('a.delete');
+    <script>
+      const trashcan = document.querySelector("a.delete");
+      const update = document.querySelector("a.update");
+      //const Blog = require('../models/blog');
+      const title = document.querySelector(".title");
+      const body = document.querySelector(".content p");
+      const snippet = document.querySelector(".snippet");
+      trashcan.addEventListener("click", (e) => {
+        const endpoint = `/blogs/${trashcan.dataset.doc}`;
 
-    trashcan.addEventListener('click', (e) => {
-      const endpoint = `/blogs/${trashcan.dataset.doc}`;
+        fetch(endpoint, {
+          method: "DELETE",
+        })
+          .then((response) => response.json())
+          .then((data) => (window.location.href = data.redirect))
+          .catch((err) => console.log(err));
+      });
 
-      fetch(endpoint, {
-        method: 'DELETE',
-      })
-      .then(response => response.json())
-      .then(data => window.location.href = data.redirect)
-      .catch(err => console.log(err));
-    });
-    
-  </script>
-</body>
+      update.addEventListener("click", () => {
+        //const blog = new Blog();
+        const inputElement = document.createElement("input");
+        inputElement.type = "text";
+        inputElement.value = title.textContent;
+        title.parentNode.replaceChild(inputElement, title);
+
+        inputElement.focus();
+
+        const updatedBlog = {
+          id: update.dataset.doc,
+          title: "valueeeeeeeeeeee",
+          snippet: "snippet.textContent",
+          body: "body.textContent",
+        };
+        inputElement.addEventListener("blur", function () {
+          const newParagraph = document.createElement("p");
+          newParagraph.textContent = inputElement.value;
+          inputElement.parentNode.replaceChild(title, inputElement);
+        });
+        const blog = JSON.stringify(updatedBlog);
+        console.log("from client " + blog);
+        const endpoint = "/blogs/update";
+
+        fetch("/blogs/update", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedBlog),
+        })
+          .then((response) => response.text())
+
+          .then((data) => {
+            console.log(data);
+          })
+          .catch((error) => {
+            console.log("Error:", error);
+          });
+      });
+    </script>
+  </body>
 </html>

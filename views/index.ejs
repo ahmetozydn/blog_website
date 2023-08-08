@@ -1,16 +1,19 @@
 <html lang="en">
-<%- include("./partials/head.ejs") %>
+<head>
+  <%- include("./partials/head.ejs")  %>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
 
 <body>
   <%- include("./partials/nav.ejs") %>
 
   <div class="blogs content">
     <h2>All Blogs</h2>
-
     <% if (blogs.length > 0) { %>
       <% blogs.forEach(blog => { %>
           <a class="single" href="/blogs/<%= blog._id %>">
             <h3 class="title"><%= blog.title %></h3>
+            <div class="icon"> <i class="fa fa-regular fa-angle-right" style="color: #000000;"></i> </div>
             <p class="snippet"><%= blog.snippet %></p>
           </a>
       <% }) %>
