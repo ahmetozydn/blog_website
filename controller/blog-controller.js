@@ -48,6 +48,8 @@ const blog_delete = (req, res) => {
     });
 }
 
+
+
 module.exports = {
   blog_index, 
   blog_details, 

@@ -4,23 +4,32 @@ const mongoose = require('mongoose'); // ODM library to connect mongodb
 const Blog = require('./models/blog'); // import Blog model
 const blogRoutes = require('./routes/blog-routes');
 const { MongoClient, ObjectId } = require('mongodb');
-
+const error = require('./controller/error');
+const errorRoutes = require('./routes/error');
+const auth  = require('./routes/auth');
+const User = require('./models/user');
 const cors = require('cors');
+const session = require('express-session');
+const MongoDBStore = require('connect-mongodb-session')(session);
+
+
 
 // connect to mongodb & listen for requests
 const dbURI = process.env.mongodb;
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true }) // async task
-  .then(result => app.listen(3000)) // fires callback function
+  .then(result => app.listen(3000, () => { // fires callback function
+    console.log("the server live in http://localhost:3000")
+  })) 
   .catch(err => console.log(err));
 
 
 
 // listen for requests on port 3000, default host is localhost
-app.listen(3001);
+
 
 // register view engine, Embedded JavaScript
 app.set('view engine', 'ejs');
-
+// app.set('views','./views'); default folder for view engines is view folder
 /* // mongoose & mongo tests
 app.get('/add-blog', (req, res) => {
   const blog = new Blog({
@@ -37,6 +46,8 @@ app.get('/add-blog', (req, res) => {
       console.log(err);
     });
 }); */
+
+
 
 app.get('/all-blogs', (req, res) => {
   Blog.find()
@@ -58,11 +69,29 @@ app.get('/single-blog', (req, res) => {
     });
 });
 
+const store = new MongoDBStore({
+  uri: process.env.mongodb,
+  collection: 'sessions'
+});
+
+app.use(session({
+  secret: 'your-secret-key', // Replace with a secure secret key
+  resave: false,
+  saveUninitialized: true,
+  cookie : {
+    maxAge: 36000
+  },
+  store: store
+}));
 // middleware & static files
 app.use(express.static('public'));
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false })); // get form details as body, body parser
 app.use(express.json()); // Parse incoming JSON requests
 app.use(cors());
+
+
+
+app.use('/user', auth);
 
 // custom middlewares can be created
 /* app.use((req, res, next) => {
@@ -77,6 +106,42 @@ app.get('/', (req, res) => {
   res.redirect('/blogs');
 });
 
+/* app.post('/user/create-user', async (req,res) => {
+  const {username, email, password} = req.body;
+  console.log(req.body);
+  console.log(username, email, password); 
+
+  const newUser = new User(req.body);
+  newUser.save() // the new collection is automatically created by mongoose
+  .then(result => {
+    console.log(result);
+    res.redirect('/blogs');
+  })
+  .catch(err => { // don't forget to handle errors
+    console.log(err);
+  });
+}); */
+
+/* app.post('/user/login', async (req,res) => {
+  const {email, password} = req.body;
+  console.log(req.body);
+  console.log(email, password); 
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const newUser = new User({
+    username: username,
+    password: hashedPassword
+  });
+  newUser.findById() // the new collection is automatically created by mongoose
+  .then(result => {
+    console.log(result);
+    res.redirect('/blogs');
+  })
+  .catch(err => { // don't forget to handle errors
+    console.log(err);
+  });
+});
+ */
 /* // root page, express routing, the traditional approach is switch-case
  app.get('/', (req, res) => {
     const blogs = [
@@ -91,7 +156,6 @@ app.get('/', (req, res) => {
 app.get('/about', (req, res) => {
   res.render('about', { title: 'About' });
 });
-
 
 app.get('/', (req, res) => {
   res.redirect('/blogs');
@@ -165,6 +229,8 @@ app.post('/blogs/update', (req, res) => {
     } */
 });
 
+
+
 app.delete('/blogs/:id', (req, res) => { // that doesn't work
   const id = req.params.id;
   Blog.findByIdAndDelete(id)
@@ -177,6 +243,4 @@ app.delete('/blogs/:id', (req, res) => { // that doesn't work
 });
 
 // 404 page
-app.use((req, res) => {
-  res.status(404).render('404', { title: '404' });
-});
+app.use(error.errorPage);
