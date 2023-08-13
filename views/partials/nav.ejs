@@ -1,13 +1,38 @@
 <nav>
-    <div class="site-title">
-      <a href="/"><h1>Ahmet Ozaydin</h1></a>
-      <p>by KernelSoft</p>
-    </div>
-    <ul>
-      <li><a href="/">Blogs</a></li>
-      <li><a href="/about">About</a></li>
-      <li><a href="/blogs/create">New Blog</a></li>
-      <a href="user/logout">Logout</a>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    </ul>
-  </nav>
+  <div class="site-title">
+    <a href="/"><h1>Ahmet Ozaydin</h1></a>
+    <p>by KernelSoft</p>
+  </div>
+  <ul>
+    <li><a href="/">Blogs</a></li>
+    <li><a href="/about">About</a></li>
+    <li><a href="/blogs/create">New Blog</a></li> <!-- /blogs/create -->
+    <% if(isAuth){ %>
+    <li><a href="#" id="logout">Logout</a></li>
+    <% }else{ %>
+    <li><a href="/user/login">Login</a></li>
+    <% } %>
+  </ul>
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="alert-box">
+      <h4>Are you sure you want to logout?</h4>
+      <div class="button-container">
+        <button id="closeAlertButton">CANCEL</button>
+        <button id="deleteAlertButton">LOG-OUT</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    $("#logout").on("click", () => {
+      $(".modal-overlay").show();
+    });
+    $("#closeAlertButton").on("click", () => {
+      $(".modal-overlay").hide();
+    });
+    $("#deleteAlertButton").on("click", () => {
+        window.location.href = "/user/logout";
+    });
+  </script>
+</nav>

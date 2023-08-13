@@ -2,9 +2,10 @@ const Blog = require('../models/blog');
 
 // make data manupulation and set the view, interaction between view and model
 const blog_index = (req, res) => {
+  console.log("the value of isAuth is "+req.session.isAuth);
   Blog.find().sort({ createdAt: -1 }) // process the data
     .then(result => {
-      res.render('index', { blogs: result, title: 'All blogs' }); // set view side variables
+      res.render('index', { blogs: result, title: 'All blogs', isAuth: req.session.isAuth }); // set view side variables
     })
     .catch(err => {
       console.log(err);
@@ -15,7 +16,7 @@ const blog_details = (req, res) => {
   const id = req.params.id; // process the url
   Blog.findById(id)
     .then(result => {
-      res.render('details', { blog: result, title: 'Blog Details' }); // update-set-pass data the view
+      res.render('details', { blog: result, title: 'Blog Details', isAuth:req.session.isAuth }); // update-set-pass data the view
     })
     .catch(err => {
       console.log(err);
@@ -23,7 +24,8 @@ const blog_details = (req, res) => {
 }
 
 const blog_create_get = (req, res) => {
-  res.render('create', { title: 'Create a new blog' });
+  console.log("the value of csrfToken");
+  res.render('create', { title: 'Create a new blog', isAuth: req.session.isAuth, csrfToken: req.csrfToken()});
 }
 
 const blog_create_post = (req, res) => {

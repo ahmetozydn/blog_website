@@ -5,17 +5,23 @@
   <%- include("./partials/nav.ejs") %>  
 
   <div class="create-blog content">
-    <form action="/blogs" method="post">
-      <label for="title">Blog title:</label>
-      <input type="text" id="title" name="title" required>
-      <label for="snippet">Blog snippet:</label>
-      <input type="text" id="snippet" name="snippet" required>
-      <label for="body">Blog body:</label>
-      <textarea id="body" name="body" required></textarea>
-      <button>Submit</button>
-    </form>
+    <% if (!isAuth) { %>
+      <div class="login-message">
+        <h2 style="align-items: center;">You need to login to create a new blog... </h2>
+      </div>
+    <% }else{ %>
+      <form action="/blogs" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label for="title">Blog title:</label>
+        <input type="text" id="title" name="title" required>
+        <label for="snippet">Blog snippet:</label>
+        <input type="text" id="snippet" name="snippet" required>
+        <label for="body">Blog body:</label>
+        <textarea id="body" name="body" required></textarea>
+        <button>Submit</button>
+      </form>
   </div>
-
+  <% } %>
   <%- include("./partials/footer.ejs") %>
 </body>
 </html>

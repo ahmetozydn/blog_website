@@ -11,7 +11,8 @@ const User = require('./models/user');
 const cors = require('cors');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
-
+const cookieParser = require('cookie-parser');
+const csurf = require('csurf');
 
 
 // connect to mongodb & listen for requests
@@ -48,6 +49,14 @@ app.get('/add-blog', (req, res) => {
 }); */
 
 
+// middleware & static files
+app.use(express.static('public'));
+app.use(express.urlencoded({ extended: false })); // get form details as body, body parser
+app.use(express.json()); // Parse incoming JSON requests
+app.use(cookieParser());
+app.use(csurf({ cookie: true })) // Middleware to attach CSRF token to the response locals
+app.use(cors());
+
 
 app.get('/all-blogs', (req, res) => {
   Blog.find()
@@ -79,15 +88,12 @@ app.use(session({
   resave: false,
   saveUninitialized: true,
   cookie : {
-    maxAge: 36000
+    maxAge: 3600000,
   },
   store: store
 }));
-// middleware & static files
-app.use(express.static('public'));
-app.use(express.urlencoded({ extended: false })); // get form details as body, body parser
-app.use(express.json()); // Parse incoming JSON requests
-app.use(cors());
+
+
 
 
 
@@ -106,63 +112,10 @@ app.get('/', (req, res) => {
   res.redirect('/blogs');
 });
 
-/* app.post('/user/create-user', async (req,res) => {
-  const {username, email, password} = req.body;
-  console.log(req.body);
-  console.log(username, email, password); 
-
-  const newUser = new User(req.body);
-  newUser.save() // the new collection is automatically created by mongoose
-  .then(result => {
-    console.log(result);
-    res.redirect('/blogs');
-  })
-  .catch(err => { // don't forget to handle errors
-    console.log(err);
-  });
-}); */
-
-/* app.post('/user/login', async (req,res) => {
-  const {email, password} = req.body;
-  console.log(req.body);
-  console.log(email, password); 
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const newUser = new User({
-    username: username,
-    password: hashedPassword
-  });
-  newUser.findById() // the new collection is automatically created by mongoose
-  .then(result => {
-    console.log(result);
-    res.redirect('/blogs');
-  })
-  .catch(err => { // don't forget to handle errors
-    console.log(err);
-  });
-});
- */
-/* // root page, express routing, the traditional approach is switch-case
- app.get('/', (req, res) => {
-    const blogs = [
-      {title: 'Yoshi finds eggs', snippet: 'Lorem ipsum dolor sit amet consectetur'},
-      {title: 'Mario finds stars', snippet: 'Lorem ipsum dolor sit amet consectetur'},
-      {title: 'How to defeat bowser', snippet: 'Lorem ipsum dolor sit amet consectetur'},
-    ];
-    res.render('index', { title: 'Home', blogs }); // rendering the template-webpage
-  }); */
-
 // about page
 app.get('/about', (req, res) => {
-  res.render('about', { title: 'About' });
-});
-
-app.get('/', (req, res) => {
-  res.redirect('/blogs');
-});
-// create page
-app.get('/blogs/create', (req, res) => {
-  res.render('create', { title: 'Create a new blog' });
+  console.log("the value of isAuth is "+req.session.isAuth);
+  res.render('about',  { title: 'About',isAuth : req.session.isAuth } );
 });
 
 /*   app.get('/blogs', (req, res) => {
@@ -194,7 +147,7 @@ app.get('/blogs/:id', (req, res) => {
   const id = req.params.id;
   Blog.findById(id)
     .then(result => {
-      res.render('details', { blog: result, title: 'Blog Details' });
+      res.render('details', { blog: result, title: 'Blog Details',  isAuth : req.session.isAuth });
     })
     .catch(err => {
       console.log(err);
