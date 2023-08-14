@@ -3,6 +3,7 @@ const app = express();
 const mongoose = require('mongoose'); // ODM library to connect mongodb
 const Blog = require('./models/blog'); // import Blog model
 const blogRoutes = require('./routes/blog-routes');
+const adminRoutes = require('./routes/admin');
 const { MongoClient, ObjectId } = require('mongodb');
 const error = require('./controller/error');
 const errorRoutes = require('./routes/error');
@@ -13,6 +14,8 @@ const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const cookieParser = require('cookie-parser');
 const csurf = require('csurf');
+const path = require('path'); // Require the path module
+
 
 
 // connect to mongodb & listen for requests
@@ -21,7 +24,7 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true }) // 
   .then(result => app.listen(3000, () => { // fires callback function
     console.log("the server live in http://localhost:3000")
   })) 
-  .catch(err => console.log(err));
+  .catch(err => console.log("an error occured while trying to connect db."+err));
 
 
 
@@ -30,23 +33,10 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true }) // 
 
 // register view engine, Embedded JavaScript
 app.set('view engine', 'ejs');
-// app.set('views','./views'); default folder for view engines is view folder
-/* // mongoose & mongo tests
-app.get('/add-blog', (req, res) => {
-  const blog = new Blog({
-    title: 'new blog',
-    snippet: 'about my new blog',
-    body: 'more about my new blog'
-  })
-
-  blog.save()
-    .then(result => {
-      res.send(result);
-    })
-    .catch(err => {
-      console.log(err);
-    });
-}); */
+app.set('views', [
+  path.join(__dirname, 'views'), // Default view directory
+  path.join(__dirname, 'views/admin'), // Additional view directory for admin views
+]);
 
 
 // middleware & static files
@@ -58,7 +48,7 @@ app.use(csurf({ cookie: true })) // Middleware to attach CSRF token to the respo
 app.use(cors());
 
 
-app.get('/all-blogs', (req, res) => {
+/* app.get('/all-blogs', (req, res) => {
   Blog.find()
     .then(result => {
       res.send(result);
@@ -66,7 +56,7 @@ app.get('/all-blogs', (req, res) => {
     .catch(err => {
       console.log(err);
     });
-});
+}); */
 
 app.get('/single-blog', (req, res) => {
   Blog.findById('64d0cb6da360950533e2df63')
@@ -115,7 +105,7 @@ app.get('/', (req, res) => {
 // about page
 app.get('/about', (req, res) => {
   console.log("the value of isAuth is "+req.session.isAuth);
-  res.render('about',  { title: 'About',isAuth : req.session.isAuth } );
+  res.render('about',  { title: 'About',isAuth : req.session.isAuth} );
 });
 
 /*   app.get('/blogs', (req, res) => {
@@ -129,30 +119,10 @@ app.get('/about', (req, res) => {
   }); */
 
 app.use('/blogs', blogRoutes);
+app.use('/admin', adminRoutes);
 
 
-app.post('/blogs', (req, res) => {
-  // console.log(req.body);
-  const blog = new Blog(req.body);
-  blog.save()
-    .then(result => {
-      res.redirect('/blogs');
-    })
-    .catch(err => {
-      console.log(err);
-    });
-});
 
-app.get('/blogs/:id', (req, res) => {
-  const id = req.params.id;
-  Blog.findById(id)
-    .then(result => {
-      res.render('details', { blog: result, title: 'Blog Details',  isAuth : req.session.isAuth });
-    })
-    .catch(err => {
-      console.log(err);
-    });
-});
 
 app.post('/blogs/update', (req, res) => {
   const content = req.body;

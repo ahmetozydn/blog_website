@@ -2,6 +2,7 @@ const { lowerCase, find } = require("lodash");
 const bcrypt = require('bcrypt');
 const User = require("../models/user");
 const error = require("./error");
+const redirectBasedRole = require('../middleware/isAdmin')
 
 const getLogin = function (req, res) {
   res.render('login', { errorOccured: req.session.errorOccured, csrfToken: req.csrfToken() });
@@ -9,12 +10,12 @@ const getLogin = function (req, res) {
   //console.log("the user name is "+req.body.username);
 };
 
-const getRegister =  function (req, res) {
+const getRegister = function (req, res) {
   res.render('register', { errorMessage: req.session.errorMessage, csrfToken: req.csrfToken() });
   delete req.session.errorMessage
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   const { email, password } = req.body;
   console.log(req.body);
   console.log(email, password);
@@ -38,11 +39,10 @@ const login = async (req, res) => {
           // Passwords match, login successful
           req.session.isAuth = true;
           req.session.user = user
-          return req.session.save((err) => {
+          req.session.save((err) => {
             console.log(err);
-            res.redirect('/blogs');
+            return next(); // check the user is admin or user
           });
-
         } else {
           // Passwords do not match
           req.session.errorOccured = true
@@ -61,7 +61,7 @@ const login = async (req, res) => {
 
 
 
-const register = async (req, res) => {
+const register = async (req, res, next) => {
   console.log(req.body);
   const { username, email, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -83,13 +83,13 @@ const register = async (req, res) => {
           })
         }
         else if (user.email === email) {
-            console.log("inside user.mail")
-            req.session.errorMessage = "e-mail is already in use.";
-            req.session.save((err) => {
-              if (err) { console.log(err); } // consider sending textfield credentials again
-              return res.redirect('register');
-            })
-          }
+          console.log("inside user.mail")
+          req.session.errorMessage = "e-mail is already in use.";
+          req.session.save((err) => {
+            if (err) { console.log(err); } // consider sending textfield credentials again
+            return res.redirect('register');
+          })
+        }
         return;
       }
       const newUser = new User({
@@ -99,8 +99,12 @@ const register = async (req, res) => {
       })
       newUser.save().then((err) => {
         if (err) { console.log(err); }
-        req.session.isAuth = true; // error handling?
-        return res.redirect('/blogs');
+        req.session.isAuth = true; // don't need to it just control if the user exist in session i guess
+        req.session.user = newUser;
+        return req.session.save((err) => {
+          console.log(err);
+          return next(); // check the user is admin or user
+        });
       })
 
     })

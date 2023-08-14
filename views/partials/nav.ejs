@@ -2,17 +2,20 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
   <div class="site-title">
-    <a href="/"><h1>Ahmet Ozaydin</h1></a>
+    <a href="/"><h1>Blogium</h1></a>
     <p>by KernelSoft</p>
   </div>
   <ul>
     <li><a href="/">Blogs</a></li>
     <li><a href="/about">About</a></li>
-    <li><a href="/blogs/create">New Blog</a></li> <!-- /blogs/create -->
+    <li><a href="/blogs/create">New Blog</a></li>
+    <!-- /blogs/create -->
     <% if(isAuth){ %>
     <li><a href="#" id="logout">Logout</a></li>
+    <li><a href="/blogs/my-blogs">My Blogs</a></li>
     <% }else{ %>
     <li><a href="/user/login">Login</a></li>
+    <li><a href="/blogs/my-blogs">My Blogs</a></li>
     <% } %>
   </ul>
   <div class="modal-overlay" id="modalOverlay">
@@ -32,7 +35,8 @@
       $(".modal-overlay").hide();
     });
     $("#deleteAlertButton").on("click", () => {
-        window.location.href = "/user/logout";
+      window.location.href = "/user/logout";
     });
+
   </script>
 </nav>

@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const blogSchema = new Schema({
+  authorId: {
+    type: mongoose.Schema.Types.ObjectId, // tag, category, featuredImage, likes
+    ref: 'User',
+    required: true
+  },
   title: {
     type: String,
     required: true,

@@ -1,9 +1,0 @@
-function isAdmin(req, res, next) {
-  if (req.user && req.user.role === 'admin') {
-    // User is an admin, proceed to the next middleware/route handler
-    return next();
-  } else {
-    // User is not an admin, send an appropriate response (e.g., error page or unauthorized)
-    return res.status(403).send('Access denied.');
-  }
-}
