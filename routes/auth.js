@@ -5,11 +5,12 @@ const roleBasedRedirect  = require('../middleware/isAdmin');
 const router  = express.Router();
 
 
-router.get('/login',csrf, authController.getLogin);
+router.get('/login', csrf, authController.getLogin);
 router.get('/logout',authController.logout);
 router.get('/register',csrf, authController.getRegister);
-router.post('/login',authController.login, roleBasedRedirect.isAdmin);
-router.post('/register',authController.register,roleBasedRedirect.isAdmin);
+router.get('/all-users', authController.get_all_users);
+router.post('/login'/* ,csrf */,authController.login_post /* , roleBasedRedirect.redirectTo */);
+router.post('/register',authController.register,roleBasedRedirect.redirectTo);
 
 
 module.exports =  router;

@@ -7,13 +7,24 @@ const isUser = (req, res, next) =>{
 
   const isAdmin = async (req, res, next) =>{
     if (req.session.isAuth && req.session.user.role === 'admin') {
-     return res.redirect('/admin/dashboard');
+     return next(); // got to next middleware to open dashboard
+    }else{
+      return res.redirect('/blogs'); // Redirect unauthorized users
+    }
+  }
+
+  const redirectTo = async (req, res, next) =>{
+    if (req.session.isAuth && req.session.user.role === 'admin') {
+      console.log("the csrf inside redirectTo is "+req.csrfToken());
+     return res.redirect('/admin/dashboard'); // got to next middleware to open dashboard
+    }else{
+      return res.redirect('/blogs'); // Redirect unauthorized users
     }
     console.log("the requires url is "+req.originalUrl);
-    return res.redirect('/blogs'); // Redirect unauthorized users
   }
 
   module.exports = {
     isAdmin,
-    isUser
+    isUser,
+    redirectTo
   }

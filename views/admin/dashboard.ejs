@@ -49,18 +49,40 @@
         <input type="text" class="form-control mb-3" placeholder="Search Blogs">
         <!-- Table for displaying blogs -->
         <table class="table table-bordered">
+
           <thead>
             <tr>
+              <th>Blog ID</th>
+              <th>Author ID </th>
               <th>Blog Title</th>
-              <th>Blog Description</th>
-              <th>Author</th>
+              <th>Blog Snippet</th>
+              <th>Blog Body</th>
               <th>Delete</th>
               <th>Update</th>
             </tr>
           </thead>
+          <% if (posts.length > 0) { %>
+            <% posts.forEach(post => { %>
           <tbody>
-            <!-- Blog rows go here -->
+            <tr>
+              <td><%=post._id%></td>
+              <td><%=post.authorId%></td>
+              <td><%=post.title%></td>
+              <td><%=post.snippet%></td>
+              <td><%=post.body%></td>
+              <td>
+                <button class="btn btn-danger">Delete</button>
+              </td>
+              <td>
+              <button class="btn btn-primary">Update</button>
+              </td>
+            </tr>
           </tbody>
+          <% }) %>
+          <% }else{ %>
+              There is no blog!
+
+            <% } %>
         </table>
       </div>
 
@@ -71,16 +93,24 @@
         <table class="table table-bordered">
           <thead>
             <tr>
+              <th>User ID</th>
               <th>User Name</th>
               <th>Email</th>
+              <th>Password</th>
+              <th>Role</th>
               <th>Delete</th>
               <th>Update</th>
             </tr>
           </thead>
+          <% if (users.length > 0) { %>
+            <% users.forEach(user => { %>
           <tbody>
             <tr>
-              <td>Sample Blog 1</td>
-              <td>This is the description of Sample Blog 1.</td>
+              <td><%=user._id%></td>
+              <td><%=user.username%></td>
+              <td><%=user.email%></td>
+              <td><%=user.password%></td>
+              <td><%=user.role%></td>
               <td>
                 <button class="btn btn-danger">Delete</button>
               </td>
@@ -89,6 +119,11 @@
               </td>
             </tr>
           </tbody>
+          <% }) %>
+          <% }else{ %>
+              There is no blog!
+
+            <% } %>
         </table>
       </div>
     </div>

@@ -7,15 +7,14 @@ const redirectBasedRole = require('../middleware/isAdmin')
 const getLogin = function (req, res) {
   res.render('login', { errorOccured: req.session.errorOccured, csrfToken: req.csrfToken() });
   delete req.session.errorOccured;
-  //console.log("the user name is "+req.body.username);
 };
 
-const getRegister = function (req, res) {
+const getRegister =  (req, res) => {
   res.render('register', { errorMessage: req.session.errorMessage, csrfToken: req.csrfToken() });
   delete req.session.errorMessage
 };
 
-const login = async (req, res, next) => {
+const login_post = async (req, res, next) => {
   const { email, password } = req.body;
   console.log(req.body);
   console.log(email, password);
@@ -39,9 +38,12 @@ const login = async (req, res, next) => {
           // Passwords match, login successful
           req.session.isAuth = true;
           req.session.user = user
+          req.session.token = req.csrfToken();
+          console.log("the csrf inside login_post is ",req.session.token);
           req.session.save((err) => {
             console.log(err);
-            return next(); // check the user is admin or user
+            return res.redirect('/admin/dashboard');
+            //return next(); //got to next middleware to open dashboard
           });
         } else {
           // Passwords do not match
@@ -119,10 +121,23 @@ const logout = async (req, res) => {
   });
 };
 
+const  get_all_users = async (req, res,next) => {
+  console.log("inside get_all_users");
+  User.find().sort({ createdAt: -1 })
+  .then(result => {
+    console.log(result);
+    return res.json(result);
+  })
+  .catch(err => {
+    console.log(err);
+  });
+}
+
 module.exports = {
   getLogin,
   getRegister,
-  login,
+  login_post,
   register,
-  logout
+  logout,
+  get_all_users
 }

@@ -1,6 +1,9 @@
 const ObjectId = require('mongoose/lib/schema/objectid');
 const Blog = require('../models/blog');
 var mongoose = require('mongoose');
+const { result } = require('lodash');
+const User = require('../models/user');
+
 // make data manupulation and set the view, interaction between view and model
 const blog_index = (req, res) => {
   console.log("the value of isAuth is " + req.session.isAuth);
@@ -88,6 +91,43 @@ const post_get = async (req, res, next) => {
     }
 }
 
+const update_post = (req, res) => {
+  const content = req.body;
+  console.log(req.body);
+
+  Blog.findByIdAndUpdate({ "_id": content._id },
+    {
+      $set: {
+        title: content.title,
+        snippet: content.snippet,
+        body: content.body
+      }
+    }
+  ).then(result =>{
+    res.json({ status: 'success',
+    message: 'Post updated successfully.'})
+  })
+  .catch(err => {
+    res.json({ status: 'fail',
+    message: 'Failed to update blog.'})
+  });
+}
+const  get_all_blogs = function(req, res,next) {
+  console.log("inside get_all_blogs");
+  Blog.find().sort({ createdAt: -1 })
+  .then(result => {
+    console.log("the type is"+typeof result)
+    console.log(result);
+    return res.json(result);
+  })
+  .catch(err => {
+    console.log("in get all blogs"+err);
+    res.json({status: "fail", message: "Failed to load all blogs."});
+  });
+}
+
+
+
 module.exports = {
   blog_index,
   blog_details,
@@ -95,5 +135,7 @@ module.exports = {
   blog_create_post,
   blog_delete,
   user_blogs,
-  post_get
+  post_get,
+  update_post,
+  get_all_blogs,
 }

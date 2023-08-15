@@ -34,18 +34,27 @@
 </head>
 <body>
     <p id = "post-id" style="display: none;"><%=post._id%></p>
-    <input type="hidden" name="_csrf" value="<%=token%>">
     <p id = "csrfToken" style="display: none;"><%=token%></p>
+
     <% if(isAuth){ %>
   <div class="container">
-    <h1><%= post.title%></h1>
-    <p class="blog-snippet"><%= post.snippet%></p>
+    <div class="alert alert-danger" id="dangerAlert" role="alert" style="display: none;">
+    
+    <button style="position: absolute;
+    margin: 10px; 
+    top: 0 ;
+    right: 0 ;" class="btn-close" id ="cancelButton" aria-label="Close"></button>
+
+  </div>
+    <input type="text" id="post-title" readonly value="<%= post.title%>">
+    <input type="text" id="post-snippet" readonly value="<%= post.snippet%>">
     <div class="blog-content">
-      <p><%= post.body%></p>
+      <input type="text" id="post-body" readonly value="<%= post.body%>">
     </div>
 </br>
         <div class="d-flex justify-content-between mt-3">
           <button class="btn btn-primary" id="update-button">Update</button>
+          <button class="btn btn-primary" id="approve-button" style="display: none;">Approve</button>
           <button class="btn btn-danger" id="delete-button">Delete</button>
         </div>
   </div>
@@ -62,20 +71,20 @@
 
 
   $(document).ready(function() {
-    var token1 = document.querySelector('input[name="_csrf"]').value;
+    let isEditable = true;
+    const token = $('#csrfToken').text();
+    const id =  $('#post-id').text();
 
 
     $('#delete-button').click( ()=>{
-      const token = $('#csrfToken').text();
       console.log("the token is "+token);
-       let id =  $('#post-id').text();
        let obj = {id: id}
         url = "/blogs/delete-post";
         fetch(url, {
           method: "post",
            headers:{
             'Content-Type': 'application/json',
-            "X-CSRF-Token" : token1
+            "X-CSRF-Token" : token
           }, 
           body: JSON.stringify(obj)
         })
@@ -90,8 +99,41 @@
             .catch(error => console.error('Error:', error));
     })
     $('#update-button').click( ()=>{
-        console.log("update button")
-    })
+      isEditable = !isEditable; // Toggle the editable state
+      $('#post-body').attr('readonly', isEditable);
+      $('#post-snippet').attr('readonly', isEditable);
+      $('#post-title').attr('readonly', isEditable);
+        if(!isEditable){  
+          $('#approve-button').show();
+        $('#post-body').focus();
+      } 
+        else{ $('#approve-button').hide();}
+       })
+
+       $('#approve-button').click( ()=>{
+        let input = {_id : id, title:$('#post-title').val(), snippet: $('#post-snippet').val(), body: $('#post-body').val()}
+          fetch('/blogs/update', {
+          method: "post",
+           headers:{
+            'Content-Type': 'application/json',
+            "X-CSRF-Token" : token
+          }, 
+          body: JSON.stringify(input)
+        })
+        .then(response=>response.json())
+        .then(data=>{
+          if(data.status == "success"){
+            window.location.href = "/blogs/my-blogs";
+          }else{
+            $('#dangerAlert').text(data.message);
+            $('#dangerAlert').show();
+          }
+        })
+       })
+
+       $('#cancelButton').on('click', function() {
+      $('#dangerAlert').hide();
+    });
 });
 </script>
 </html>

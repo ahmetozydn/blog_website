@@ -1,14 +1,11 @@
 const express = require('express'); // express for creating server, returns a function
 const app = express();
 const mongoose = require('mongoose'); // ODM library to connect mongodb
-const Blog = require('./models/blog'); // import Blog model
 const blogRoutes = require('./routes/blog-routes');
 const adminRoutes = require('./routes/admin');
-const { MongoClient, ObjectId } = require('mongodb');
 const error = require('./controller/error');
 const errorRoutes = require('./routes/error');
 const auth  = require('./routes/auth');
-const User = require('./models/user');
 const cors = require('cors');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
@@ -44,29 +41,9 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: false })); // get form details as body, body parser
 app.use(express.json()); // Parse incoming JSON requests
 app.use(cookieParser());
-app.use(csurf({ cookie: true })) // Middleware to attach CSRF token to the response locals
 app.use(cors());
+app.use(csurf({ cookie: true })); // Middleware to attach CSRF token to the response locals, Configure CSRF middleware
 
-
-/* app.get('/all-blogs', (req, res) => {
-  Blog.find()
-    .then(result => {
-      res.send(result);
-    })
-    .catch(err => {
-      console.log(err);
-    });
-}); */
-
-app.get('/single-blog', (req, res) => {
-  Blog.findById('64d0cb6da360950533e2df63')
-    .then(result => {
-      res.send(result);
-    })
-    .catch(err => {
-      console.log(err);
-    });
-});
 
 const store = new MongoDBStore({
   uri: process.env.mongodb,
@@ -84,29 +61,18 @@ app.use(session({
 }));
 
 
-
-
-
-app.use('/user', auth);
-
-// custom middlewares can be created
-/* app.use((req, res, next) => {
-  console.log('new request made:');
-  console.log('host: ', req.hostname);
-  console.log('path: ', req.path);
-  console.log('method: ', req.method);
-  next(); // call the next middleware
-}); */
-
+// Routes
 app.get('/', (req, res) => {
   res.redirect('/blogs');
 });
-
-// about page
 app.get('/about', (req, res) => {
-  console.log("the value of isAuth is "+req.session.isAuth);
   res.render('about',  { title: 'About',isAuth : req.session.isAuth} );
 });
+app.use('/user', auth);
+app.use('/blogs', blogRoutes);
+app.use('/admin', adminRoutes);
+app.use(error.errorPage);
+
 
 /*   app.get('/blogs', (req, res) => {
     Blog.find().sort({ createdAt: -1 })
@@ -118,42 +84,17 @@ app.get('/about', (req, res) => {
       });
   }); */
 
-app.use('/blogs', blogRoutes);
-app.use('/admin', adminRoutes);
+/* app.get('/all-blogs', (req, res) => {
+  Blog.find()
+    .then(result => {
+      res.send(result);
+    })
+    .catch(err => {
+      console.log(err);
+    });
+}); */
 
-
-
-
-app.post('/blogs/update', (req, res) => {
-  const content = req.body;
-  console.log(req.body);
-
-  Blog.findByIdAndUpdate({ "_id": content.id },
-    {
-      $set: {
-        title: content.title,
-        snippet: content.snippet,
-        body: content.body
-      }
-    }
-  )
-  .catch(err => {
-    console.log(err);
-  });
-  //Blog.updateOne(filter, update)
-  /*   const result = Blog.updateOne(content.id, update);
-    
-    console.log("the value of the result is "+result);
-  
-    if (result.machedCount > 0) {
-      console.log("updated successfully");
-    } else {
-      console.log("error occured while updating...");
-    } */
-});
-
-
-
+/* 
 app.delete('/blogs/:id', (req, res) => { // that doesn't work
   const id = req.params.id;
   Blog.findByIdAndDelete(id)
@@ -163,7 +104,6 @@ app.delete('/blogs/:id', (req, res) => { // that doesn't work
     .catch(err => {
       console.log(err);
     });
-});
+}); */
 
 // 404 page
-app.use(error.errorPage);
